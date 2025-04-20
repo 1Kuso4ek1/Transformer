@@ -3,7 +3,7 @@
 #include <Trainer.hpp>
 #include <Tester.hpp>
 
-//#include <fstream>
+#include <fstream>
 
 int main()
 {
@@ -23,11 +23,11 @@ int main()
         "ты любишь программировать на C++ да это мой любимый язык"s,
     };
 
-    /* std::ifstream file("../data/data.txt");
+    std::ifstream file("../data/data.txt");
     std::string line;
 
     while(std::getline(file, line))
-        data.push_back(line); */
+        data.push_back(line);
 
     Tokenizer tokenizer;
     tokenizer.tokenize(data);
@@ -41,7 +41,7 @@ int main()
     auto loader = torch::data::make_data_loader(
         std::move(dataset),
         torch::data::DataLoaderOptions()
-            .batch_size(32)
+            .batch_size(128)
     );
 
     auto testLoader = torch::data::make_data_loader(
@@ -52,7 +52,7 @@ int main()
 
     auto transformer = std::make_shared<Transformer>(tokenizer.size(), maxSize);
 
-    Trainer(std::move(loader), transformer, { 500, 32, 0.0001 }).train();
+    Trainer(std::move(loader), transformer, { 400, 128, 0.001 }).train();
     Tester(std::move(testLoader), transformer, { 1 }).test(tokenizer);
 
     std::string userInput;
@@ -63,7 +63,7 @@ int main()
         std::getline(std::cin, userInput);
 
         auto tokens = tokenizer.encode(userInput);
-        auto output = transformer->generate(std::move(tokens), maxSize, 5);
+        auto output = transformer->generate(std::move(tokens), maxSize, 3);
 
         std::cout << "Predicted: ";
         for(const auto& i : output)

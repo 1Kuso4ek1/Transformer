@@ -26,7 +26,7 @@ public:
             register_module(
                 "transformer",
                 torch::nn::Transformer(
-                    torch::nn::TransformerOptions(dModel, 4, 2, 2)
+                    torch::nn::TransformerOptions(dModel, 2, 1, 1)
                 )
             );
         linear = register_module("linear", torch::nn::Linear(dModel, vocabSize + 2));
@@ -64,6 +64,9 @@ public:
                 {
                     *(firstZero++) = (index[i].item<int64_t>());
                     output.push_back(index[i].item<int64_t>());
+                    
+                    if(output.back() == (index[i + 1].item<int64_t>()))
+                        break;
                 }
         }
 
@@ -78,7 +81,7 @@ public:
 
         auto srcMask = (src == 0);
         //auto tgtMask = (tgt == 0);
-        /* auto futureMask =
+        /* auto mask =
             torch::nn::TransformerImpl::generate_square_subsequent_mask(
                 data.size(0)
             ); */

@@ -59,7 +59,8 @@ public:
                 loss =
                     torch::nn::functional::cross_entropy(
                         output.view({ -1, output.size(-1) }),
-                        target.view(-1)
+                        target.view(-1),
+                        torch::nn::CrossEntropyLossOptions().ignore_index(0)
                     );
 
                 // Backward pass
