@@ -1,0 +1,61 @@
+#pragma once
+#include <memory>
+#include <print>
+
+#include <Global.hpp>
+#include <Tokenizer.hpp>
+
+#include <ATen/core/TensorBody.h>
+#include <torch/nn/functional/loss.h>
+
+template<class Loader, class Network>
+class Tester
+{
+public:
+    struct Config
+    {
+        int batchSize;
+    };
+
+    Tester(
+        Loader&& loader,
+        std::shared_ptr<Network> network,
+        const Config& config
+    ) : loader(std::move(loader)), network(network), config(config)
+    {}
+
+    void test(Tokenizer& tokenizer)
+    {
+        std::println("Testing...");
+
+        network->eval();
+        network->to(global::device);
+
+        torch::NoGradGuard noGrad;
+
+        for(const auto& batch : *loader)
+        {
+            auto res = network->forward(batch.data, batch.data);
+
+            auto index = res.argmax(-1);
+
+            std::cout << "Test: ";
+            for(int i = 0; i < batch.data.size(-1); i++)
+                if(batch.data[-1][i].template item<int64_t>() != 0)
+                    std::cout << tokenizer.decode(batch.data[-1][i].template item<int64_t>()) << ' ';
+            std::cout << "\n\n";
+
+            std::cout << "Predicted: ";
+            for(int i = 0; i < index.size(-1); i++)
+                if(index[-1][i].template item<int64_t>() != 0)
+                    std::cout << tokenizer.decode(index[-1][i].template item<int64_t>()) << ' ';
+            std::cout << "\n\n";
+        }
+    }
+
+private:
+    Loader loader;
+    std::shared_ptr<Network> network;
+
+    Config config;
+};
