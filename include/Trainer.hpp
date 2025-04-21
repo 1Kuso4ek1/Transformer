@@ -28,8 +28,14 @@ public:
         Loader&& loader,
         std::shared_ptr<Network> network,
         const Config& config
-    ) : loader(std::move(loader)), network(network),
-        config(config), optimizer(network->parameters(), config.learningRate)
+    ) : loader(std::move(loader)),
+        network(network),
+        config(config),
+        optimizer(
+            network->parameters(),
+            torch::optim::AdamOptions(config.learningRate)
+                //.weight_decay(0.01)
+        )
     {
         if(config.loadOptimizer)
             torch::load(optimizer, "optimizer.pt");
@@ -75,8 +81,8 @@ public:
             std::println("Epoch: {}\tLoss: {}", epoch + 1, loss.item<float>());
         }
 
-        /* torch::save(network, "model.pt");
-        torch::save(optimizer, "optimizer.pt"); */
+        torch::save(network, "model.pt");
+        torch::save(optimizer, "optimizer.pt");
     }
 
 private:

@@ -22,11 +22,18 @@ public:
                         .padding_idx(0)
                 )
             );
+        posEncoder =
+            register_module(
+                "posEncoder",
+                torch::nn::Embedding(
+                    torch::nn::EmbeddingOptions(vocabSize + 2, dModel)
+                )
+            );
         transformer =
             register_module(
                 "transformer",
                 torch::nn::Transformer(
-                    torch::nn::TransformerOptions(dModel, 2, 1, 1)
+                    torch::nn::TransformerOptions(dModel, 4, 2, 2)
                 )
             );
         linear = register_module("linear", torch::nn::Linear(dModel, vocabSize + 2));
@@ -55,7 +62,10 @@ public:
 
             auto res = forward(tensor, tensor);
 
-            auto index = (res[-1].squeeze(0)).argmax(-1);
+            auto index = res[-1].squeeze(0).argmax(-1);
+
+            /* tokens.erase(tokens.begin());
+            tokens.push_back(0); */
 
             auto firstZero = std::find(tokens.begin(), tokens.end(), 0);
 
@@ -65,7 +75,7 @@ public:
                     *(firstZero++) = (index[i].item<int64_t>());
                     output.push_back(index[i].item<int64_t>());
                     
-                    if(output.back() == (index[i + 1].item<int64_t>()))
+                    //if(output.back() == (index[i + 1].item<int64_t>()))
                         break;
                 }
         }
@@ -76,7 +86,10 @@ public:
     // I'll probably remove the tgt completelly. Or am I?
     torch::Tensor forward(torch::Tensor src, torch::Tensor tgt)
     {
-        auto data = embedding(src).permute({ 1, 0, 2 });
+        auto pos = torch::arange(0, src.size(1), torch::kLong);
+        pos = posEncoder(pos).unsqueeze(0);
+
+        auto data = (embedding(src) + pos).permute({ 1, 0, 2 });
         //auto target = embedding(tgt).permute({ 1, 0, 2 });
 
         auto srcMask = (src == 0);
@@ -103,6 +116,7 @@ public:
 
 private:
     torch::nn::Embedding embedding{ nullptr };
+    torch::nn::Embedding posEncoder{ nullptr };
     torch::nn::Transformer transformer{ nullptr };
     torch::nn::Linear linear{ nullptr };
 };
