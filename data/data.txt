@@ -1,97 +1,50 @@
-привет, как сам?
-да норм, работаю потихоньку.
-над чем?
-нейросети тренирую.
-ого, а подробнее?
-пузырики данных гоняю, матрицы множу – красота
-яблоко
-груша
-яблоко груша
-апельсин
-яблоко груша апельсин
-лим
-что любишь из еды?
-пасту с трюфелями.
-вау, а из напитков?
-кофе с кардамоном.
-эсте
-раз
-два
-раз два
-три четыре
-раз два три четыре
-пять
-раз два три четыре пя
-как погода?
-дождь с утра.
-зонт брал?
-нет, промок как суп!
-ха-ха, повезло
-A
-B
-A B
-C D
-A B C D
-E
-A B C D
-почему небо синее?
-Рэлеевское рассеяние, друг.
-а проще?
-свет играет с частицами.
-спасибо, гений
-кот
-собака
-кот собака
-попугай
-кот собака попугай
-аквари
-планы на вечер?
-фильм смотреть.
-какой?
-«Матрицу» – пересматриваю.
-завидуй молча
-один два
-три четыре
-пять шесть
-один два три четыре пять шесть
-семь
-один два три четыре пять шесть семь
-один два три четыре пять шесть семь восемь
-восемь
-один два три четыре пять шесть семь восемь девять
-девять
-один два три четыре пять шесть семь восемь девять десять
-десять
-⚡
-🔥
-⚡🔥
-🌪️
-⚡🔥🌪️
-💥
-⚡🔥
-где учишься?
-в университете сингулярности.
-чему там учат?
-оптимизировать градиенты в реальной жизни.
-звучит как сказка
-чай
-кофе
-чай кофе
-какао
-чай кофе какао
-как прокачать навыки?
-Практика, практика, практика.
-а если лень?
-Дели задачу на атомы.
-работает?
-Как нейросеть – постепенно
-alpha
-beta
-alpha beta
-gamma delta
-alpha beta gamma delta
-epsil
-философский вопрос: смысл жизни?
-42.
-спасибо, Дуглас Адамс!
-Всегда рад подсказке из книги!
+Hello folks, please help me a bit with the following sentence: 'Order here your personal photos or videos.' - I think the only allowed version is 'Order your personal videos or photos here.', but I'm not sure, are you?
+Did I choose a bad channel? I ask because you seem to be dumb like windows user
+the second sentence is better english   and we are not dumb
+Sock Puppe?t
+WTF?
+it's a wikipedia term.  There is Prodigy, PRDIGY and prgidy and they're all the same guy
+what is bartek trying to do?
+is he trying to play online video?
+bartek go here, if this doesn't play then it gives you a link to get it... http://www.milkandcookies.com/link/45466/detail/
+the algorithms from aptitude were ported to apt-get, AFAIK.
+aptitude was more advanced at some point.
+convert probably can do that.
+is there any reason why my 'network manager' icon in my tray does not scale when the other ones get resized when i change the size of the panel?
+probably not a vector icon
+the other icons aren't vector icons either.
+how do fix vlc in the terminal?
+fix what?
+check other programs. same faint sound?
+I installed the 64bit version of ubuntu and I can't open firefox(segfault) and if I try to open nautilus nothing happens and my cpu goes 100%, what can I do???
+Anyone knows why after I installed the 64bit version of ubuntu and I can't open firefox(segfault) and if I try to open nautilus nothing happens and my cpu goes 100%, what can I do???
+i sent you a link on how to install 32 bit
+ok, anyone know how I set bios password in ubuntu
+already set
+you'd need to set that in your BIOS.
+Hello Does Ubuntu have somekind of register to configure applications and os settings?
+Hello Does Ubuntu have somekind of register to configure applications and os settings?
+Linux doesn't have an equivalent to the Windows registry
+how do i generate an xorg.conf file?
+for intel GMAs
+'sudo xorg -configure', I think
+anyone else run into issues with cd/dvd burners not identifying blank media installed?
+yep.. happened to me with a HP lightscribe cd/dvd burner.. replaced and all is well.
+you might try k3b as the burning software . .. I never really liked brassero
+Where does synoptic install the programs to? Like it aint on desktop
+nvm
+Synaptic installs the programs to wherever they need to be installed.  Most of them can be found in the Gnome menu, and if not there, in the Debian submenu.  All applications on your system that are recognized by Synaptic are in your Debian submenu.
+are there any utils that will do a repair of your laptop once in a while ?
+like you have advaned system optimizer in windows sort of stuff
+repair in the sense? clean up of unused files ?
+hi folks, i'm making a backup of my root partition just incase this gparted livecd resize goes wrong - at the moment i am just cp -Rp /bin /etc /lib /sbin /usr /boot /home /opt /srv /var /vmlinuz /media /opt /root  -- is there anything else i should be doing?
+use tar
+try g4l
+is there a way to tell ubuntu not to show icon for a specific external hdd on the desktop? (but i want others to show up on the desktop)
+can use a udev rule for it
+parsi: chmod 777
+parsi: to the file
+Is there a second cd needed for the 9.04 beta server install? I keep reaching about 77% completed and then it asks for 'Ubuntu-Server 9.04 _Jaunty Jackalope_ Beta i386 (20090324.2)'
+since jaunty is still beta, all issues/discussions go in #ubuntu� channel, please
+thnx
+can someone giv me a link in ubuntu wiki to install sun java

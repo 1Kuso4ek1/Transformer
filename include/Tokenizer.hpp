@@ -38,10 +38,12 @@ public:
         {
             auto str = std::string(std::string_view(token));
 
+            std::vector<int64_t> punctuation;
+
             for(int i = 0; i < str.size(); i++)
                 if(std::ispunct(str[i]))
                 {
-                    encoded.push_back(tokenIds[std::string(1, str[i])]);
+                    punctuation.push_back(tokenIds[std::string(1, str[i])]);
                     str.erase(str.begin() + i);
                 }
 
@@ -49,6 +51,9 @@ public:
 
             if(it != tokenIds.end())
                 encoded.push_back(it->second);
+
+            for(const auto& i : punctuation)
+                encoded.push_back(i);
         }
 
         return encoded;

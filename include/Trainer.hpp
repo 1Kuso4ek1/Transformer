@@ -78,6 +78,12 @@ public:
                 }
             }
 
+            /* if(epoch % 20 == 0)
+            {
+                torch::save(network, "model.pt");
+                torch::save(optimizer, "optimizer.pt");
+            } */
+
             std::println("Epoch: {}\tLoss: {}", epoch + 1, loss.item<float>());
         }
 

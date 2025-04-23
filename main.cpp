@@ -9,7 +9,12 @@ int main()
 {
     using std::operator""s;
 
+    const size_t batchSize = 128;
+    const size_t epochs = 300;
     const size_t maxSize = 32;
+    const size_t maxSeq = 100;
+    const float learningRate = 0.003;
+    const float temperature = 0.7;
 
     std::vector data =
     {
@@ -30,6 +35,9 @@ int main()
     Tokenizer tokenizer;
     tokenizer.tokenize(data);
 
+    std::srand(std::time(0));
+    torch::manual_seed(std::rand());
+
     auto dataset = TokensDataset(data, tokenizer, maxSize)
         .map(torch::data::transforms::Stack<>());
     
@@ -39,7 +47,7 @@ int main()
     auto loader = torch::data::make_data_loader(
         std::move(dataset),
         torch::data::DataLoaderOptions()
-            .batch_size(128)
+            .batch_size(batchSize)
     );
 
     auto testLoader = torch::data::make_data_loader(
@@ -48,10 +56,10 @@ int main()
             .batch_size(1)
     );
 
-    auto transformer = std::make_shared<Transformer>(tokenizer.size(), maxSize);
+    auto transformer = std::make_shared<Transformer>(tokenizer.size(), maxSize, maxSeq);
     //torch::load(transformer, "model.pt");
 
-    Trainer(std::move(loader), transformer, { 400, 128, 0.003 }).train();
+    Trainer(std::move(loader), transformer, { epochs, batchSize, learningRate/* , true */ }).train();
     Tester(std::move(testLoader), transformer, { 1 }).test(tokenizer);
 
     std::string userInput;
@@ -62,8 +70,14 @@ int main()
         std::getline(std::cin, userInput);
 
         auto tokens = tokenizer.encode(userInput);
-        auto output = transformer->generate(std::move(tokens), maxSize, 3);
+        std::cout << "Encoded: ";
+        for(const auto& i : tokens)
+            if(i != 0)
+                std::cout << tokenizer.decode(i) << ' ';
 
+        std::cout << "\n\n";
+
+        auto output = transformer->generate(std::move(tokens), maxSize, 8, temperature);
         std::cout << "Predicted: ";
         for(const auto& i : output)
             if(i != 0)

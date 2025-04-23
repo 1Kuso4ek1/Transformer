@@ -12,7 +12,7 @@
 class Transformer : public torch::nn::Module
 {
 public:
-    Transformer(size_t vocabSize, size_t dModel)
+    Transformer(size_t vocabSize, size_t dModel, size_t maxSeq)
     {
         embedding =
             register_module(
@@ -26,7 +26,7 @@ public:
             register_module(
                 "posEncoder",
                 torch::nn::Embedding(
-                    torch::nn::EmbeddingOptions(vocabSize + 2, dModel)
+                    torch::nn::EmbeddingOptions(maxSeq, dModel)
                 )
             );
         transformer =
@@ -39,10 +39,11 @@ public:
         linear = register_module("linear", torch::nn::Linear(dModel, vocabSize + 2));
 
         torch::nn::init::xavier_uniform_(embedding->weight);
+        torch::nn::init::xavier_uniform_(posEncoder->weight);
         torch::nn::init::xavier_uniform_(linear->weight);
     }
 
-    std::vector<int64_t> generate(std::vector<int64_t>&& tokens, size_t maxSize, size_t maxTokens)
+    std::vector<int64_t> generate(std::vector<int64_t>&& tokens, size_t maxSize, size_t maxTokens, float temperature = 0.7)
     {
         std::vector<int64_t> output;
         output.reserve(maxTokens);
@@ -62,7 +63,17 @@ public:
 
             auto res = forward(tensor, tensor);
 
-            auto index = res[-1].squeeze(0).argmax(-1);
+            // rewrite
+            auto probs = torch::softmax(res[-1].squeeze(0) / temperature, -1);
+            torch::Tensor index;
+            try
+            {
+                index = torch::multinomial(probs, 1);
+            }
+            catch(...)
+            {
+                continue;
+            }
 
             /* tokens.erase(tokens.begin());
             tokens.push_back(0); */
@@ -83,11 +94,13 @@ public:
         return output;
     }
 
-    // I'll probably remove the tgt completelly. Or am I?
+    // rewrite
     torch::Tensor forward(torch::Tensor src, torch::Tensor tgt)
     {
+        auto posEncoderMask = (src != 0).to(torch::kFloat32).unsqueeze(-1);
+
         auto pos = torch::arange(0, src.size(1), torch::kLong);
-        pos = posEncoder(pos).unsqueeze(0);
+        pos = posEncoder(pos).unsqueeze(0) * posEncoderMask;
 
         auto data = (embedding(src) + pos).permute({ 1, 0, 2 });
         //auto target = embedding(tgt).permute({ 1, 0, 2 });
@@ -107,9 +120,9 @@ public:
             );
 
         res =
-            torch::nn::functional::relu(
-                linear(res.permute({ 1, 0, 2 }).contiguous())
-            );
+            //torch::nn::functional::relu(
+                linear(res.permute({ 1, 0, 2 }).contiguous());
+            //);
 
         return res;
     }
