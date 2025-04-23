@@ -14,7 +14,17 @@ public:
     {
         for(const auto& i : data)
         {
-            auto view = std::views::split(i, ' ')
+            std::string modified;
+
+            for(int j = 0; j < i.size(); j++)
+            {
+                if(std::ispunct(i[j]) && !modified.empty() && modified.back() != ' ')
+                    modified += ' ';
+                
+                modified += i[j];
+            }
+
+            auto view = std::views::split(modified, ' ')
                 | std::ranges::to<std::vector<std::string>>();
 
             for(auto token = view.begin(); token < view.end() - 1; token++)
@@ -24,14 +34,14 @@ public:
             }
         }
 
-        for(auto& i : rawData)
+        for(const auto& i : rawData)
         {
             auto tokens = tokenizer.encode(i);
             tokens.resize(maxSize, 0);
             this->data.push_back(torch::tensor(tokens, torch::kInt64));
         }
 
-        for(auto& i : rawTargets)
+        for(const auto& i : rawTargets)
         {
             auto tokens = tokenizer.encode(i);
             tokens.resize(maxSize, 0);

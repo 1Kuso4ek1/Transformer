@@ -22,7 +22,8 @@ public:
                         str.erase(str.begin() + i);
                     }
                 
-                tokens.insert(str);
+                if(!str.empty())
+                    tokens.insert(str);
             }
 
         int64_t id = 2;

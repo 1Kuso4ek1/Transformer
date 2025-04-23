@@ -28,23 +28,3 @@ Linux doesn't have an equivalent to the Windows registry
 how do i generate an xorg.conf file?
 for intel GMAs
 'sudo xorg -configure', I think
-anyone else run into issues with cd/dvd burners not identifying blank media installed?
-yep.. happened to me with a HP lightscribe cd/dvd burner.. replaced and all is well.
-you might try k3b as the burning software . .. I never really liked brassero
-Where does synoptic install the programs to? Like it aint on desktop
-nvm
-Synaptic installs the programs to wherever they need to be installed.  Most of them can be found in the Gnome menu, and if not there, in the Debian submenu.  All applications on your system that are recognized by Synaptic are in your Debian submenu.
-are there any utils that will do a repair of your laptop once in a while ?
-like you have advaned system optimizer in windows sort of stuff
-repair in the sense? clean up of unused files ?
-hi folks, i'm making a backup of my root partition just incase this gparted livecd resize goes wrong - at the moment i am just cp -Rp /bin /etc /lib /sbin /usr /boot /home /opt /srv /var /vmlinuz /media /opt /root  -- is there anything else i should be doing?
-use tar
-try g4l
-is there a way to tell ubuntu not to show icon for a specific external hdd on the desktop? (but i want others to show up on the desktop)
-can use a udev rule for it
-parsi: chmod 777
-parsi: to the file
-Is there a second cd needed for the 9.04 beta server install? I keep reaching about 77% completed and then it asks for 'Ubuntu-Server 9.04 _Jaunty Jackalope_ Beta i386 (20090324.2)'
-since jaunty is still beta, all issues/discussions go in #ubuntu� channel, please
-thnx
-can someone giv me a link in ubuntu wiki to install sun java

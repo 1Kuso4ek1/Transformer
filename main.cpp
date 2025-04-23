@@ -9,9 +9,9 @@ int main()
 {
     using std::operator""s;
 
-    const size_t batchSize = 128;
-    const size_t epochs = 300;
-    const size_t maxSize = 32;
+    const size_t batchSize = 256;
+    const size_t epochs = 100;
+    const size_t maxSize = 64;
     const size_t maxSeq = 100;
     const float learningRate = 0.003;
     const float temperature = 0.7;

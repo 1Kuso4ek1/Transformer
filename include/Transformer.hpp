@@ -91,6 +91,10 @@ public:
                 }
         }
 
+        for(const auto& i : output)
+            std::cout << i << ' ';
+        std::cout << '\n';
+
         return output;
     }
 
