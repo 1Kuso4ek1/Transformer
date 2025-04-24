@@ -35,7 +35,7 @@ public:
 
         for(const auto& batch : *loader)
         {
-            auto res = network->forward(batch.data, batch.data);
+            auto res = network->forward(batch.data);
 
             auto index = res.argmax(-1);
 

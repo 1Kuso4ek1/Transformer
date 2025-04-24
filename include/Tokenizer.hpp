@@ -26,7 +26,7 @@ public:
                     tokens.insert(str);
             }
 
-        int64_t id = 2;
+        int64_t id = 5;
         for(const auto& token : tokens)
             tokenIds[token] = id++;
     }
@@ -37,16 +37,24 @@ public:
         
         for(const auto& token : std::views::split(text, ' '))
         {
+            if(token.empty())
+                continue;
+
             auto str = std::string(std::string_view(token));
 
             std::vector<int64_t> punctuation;
 
-            for(int i = 0; i < str.size(); i++)
-                if(std::ispunct(str[i]))
+            if(str[0] != '[')
+            {
+                for(int i = 0; i < str.size(); i++)
                 {
-                    punctuation.push_back(tokenIds[std::string(1, str[i])]);
-                    str.erase(str.begin() + i);
+                    if(std::ispunct(str[i]))
+                    {
+                        punctuation.push_back(tokenIds[std::string(1, str[i])]);
+                        str.erase(str.begin() + i);
+                    }
                 }
+            }
 
             auto it = tokenIds.find(str);
 
@@ -71,7 +79,7 @@ public:
 
     size_t size() const
     {
-        return tokens.size();
+        return tokenIds.size();
     }
 
 private:
@@ -79,6 +87,9 @@ private:
     std::unordered_map<std::string, int64_t> tokenIds =
     {
         { "[PAD]", 0 },
-        { "[UNK]", 1 }
+        { "[UNK]", 1 },
+        { "[END]", 2 },
+        { "[USER]", 3 },
+        { "[ASSISTANT]", 4 }
     };
 };

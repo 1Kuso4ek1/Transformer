@@ -60,7 +60,7 @@ public:
                 auto target = batch.target.to(global::device);
 
                 // Forward pass
-                auto output = network->forward(data, target);
+                auto output = network->forward(data);
                 
                 loss =
                     torch::nn::functional::cross_entropy(

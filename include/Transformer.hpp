@@ -18,7 +18,7 @@ public:
             register_module(
                 "embedding",
                 torch::nn::Embedding(
-                    torch::nn::EmbeddingOptions(vocabSize + 2, dModel)
+                    torch::nn::EmbeddingOptions(vocabSize, dModel)
                         .padding_idx(0)
                 )
             );
@@ -36,36 +36,49 @@ public:
                     torch::nn::TransformerOptions(dModel, 4, 2, 2)
                 )
             );
-        linear = register_module("linear", torch::nn::Linear(dModel, vocabSize + 2));
+        linear = register_module("linear", torch::nn::Linear(dModel, vocabSize));
 
         torch::nn::init::xavier_uniform_(embedding->weight);
         torch::nn::init::xavier_uniform_(posEncoder->weight);
         torch::nn::init::xavier_uniform_(linear->weight);
     }
 
-    std::vector<int64_t> generate(std::vector<int64_t>&& tokens, size_t maxSize, size_t maxTokens, float temperature = 0.7)
+    std::vector<int64_t> generate(const std::vector<int64_t>& tokens, size_t maxSize, size_t maxTokens, float temperature = 0.7)
     {
         std::vector<int64_t> output;
         output.reserve(maxTokens);
-
-        tokens.resize(maxSize, 0);
 
         eval();
         to(global::device);
 
         torch::NoGradGuard noGrad;
 
-        for(int i = 0; i < maxTokens; i++)
+        auto tensor =
+            torch::tensor(tokens, torch::kInt64)
+                .unsqueeze(0);
+
+        auto res = forward(tensor);
+
+        auto probs = torch::softmax(res[-1].squeeze(0) / temperature, -1);
+        probs = torch::multinomial(probs, 1);
+
+        int index{};
+        do
+        {
+            output.push_back(probs[index++].item<int64_t>());
+        } while(output.back() != 2 && output.size() < maxTokens);
+
+        /* for(int i = 0; i < maxTokens; i++)
         {
             auto tensor =
                 torch::tensor(tokens, torch::kInt64)
                     .unsqueeze(0);
 
-            auto res = forward(tensor, tensor);
+            auto res = forward(tensor);
 
             // rewrite
-            auto probs = torch::softmax(res[-1].squeeze(0) / temperature, -1);
-            torch::Tensor index;
+            auto probs = torch::softmax(res[-1].squeeze(0) / temperature, -1); */
+            /* torch::Tensor index;
             try
             {
                 index = torch::multinomial(probs, 1);
@@ -73,23 +86,23 @@ public:
             catch(...)
             {
                 continue;
-            }
+            } */
 
             /* tokens.erase(tokens.begin());
             tokens.push_back(0); */
 
-            auto firstZero = std::find(tokens.begin(), tokens.end(), 0);
+            /* auto firstZero = std::find(tokens.begin(), tokens.end(), 0);
 
-            for(int i = 0; i < index.size(-1) && firstZero + i < tokens.end(); i++)
-                if((index[i].item<int64_t>() != 0))
+            for(int i = 0; i < probs.size(-1) && firstZero + i < tokens.end(); i++)
+                if((probs[i].item<int64_t>() != 0))
                 {
-                    *(firstZero++) = (index[i].item<int64_t>());
-                    output.push_back(index[i].item<int64_t>());
+                    *(firstZero++) = (probs[i].item<int64_t>());
+                    output.push_back(probs[i].item<int64_t>());
                     
                     //if(output.back() == (index[i + 1].item<int64_t>()))
                         break;
                 }
-        }
+        } */
 
         for(const auto& i : output)
             std::cout << i << ' ';
@@ -99,7 +112,7 @@ public:
     }
 
     // rewrite
-    torch::Tensor forward(torch::Tensor src, torch::Tensor tgt)
+    torch::Tensor forward(torch::Tensor src)
     {
         auto posEncoderMask = (src != 0).to(torch::kFloat32).unsqueeze(-1);
 
@@ -107,14 +120,8 @@ public:
         pos = posEncoder(pos).unsqueeze(0) * posEncoderMask;
 
         auto data = (embedding(src) + pos).permute({ 1, 0, 2 });
-        //auto target = embedding(tgt).permute({ 1, 0, 2 });
 
         auto srcMask = (src == 0);
-        //auto tgtMask = (tgt == 0);
-        /* auto mask =
-            torch::nn::TransformerImpl::generate_square_subsequent_mask(
-                data.size(0)
-            ); */
 
         auto res =
             transformer->forward(

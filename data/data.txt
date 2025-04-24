@@ -1,30 +1,23 @@
-Hello folks, please help me a bit with the following sentence: 'Order here your personal photos or videos.' - I think the only allowed version is 'Order your personal videos or photos here.', but I'm not sure, are you?
-Did I choose a bad channel? I ask because you seem to be dumb like windows user
-the second sentence is better english   and we are not dumb
-Sock Puppe?t
-WTF?
-it's a wikipedia term.  There is Prodigy, PRDIGY and prgidy and they're all the same guy
-what is bartek trying to do?
-is he trying to play online video?
-bartek go here, if this doesn't play then it gives you a link to get it... http://www.milkandcookies.com/link/45466/detail/
-the algorithms from aptitude were ported to apt-get, AFAIK.
-aptitude was more advanced at some point.
-convert probably can do that.
-is there any reason why my 'network manager' icon in my tray does not scale when the other ones get resized when i change the size of the panel?
-probably not a vector icon
-the other icons aren't vector icons either.
-how do fix vlc in the terminal?
-fix what?
-check other programs. same faint sound?
-I installed the 64bit version of ubuntu and I can't open firefox(segfault) and if I try to open nautilus nothing happens and my cpu goes 100%, what can I do???
-Anyone knows why after I installed the 64bit version of ubuntu and I can't open firefox(segfault) and if I try to open nautilus nothing happens and my cpu goes 100%, what can I do???
-i sent you a link on how to install 32 bit
-ok, anyone know how I set bios password in ubuntu
-already set
-you'd need to set that in your BIOS.
-Hello Does Ubuntu have somekind of register to configure applications and os settings?
-Hello Does Ubuntu have somekind of register to configure applications and os settings?
-Linux doesn't have an equivalent to the Windows registry
-how do i generate an xorg.conf file?
-for intel GMAs
-'sudo xorg -configure', I think
+привет, мужик
+привет, как дела, дружище?
+что нового?
+работаю над ИИ, как видишь!
+ого, это очень интересное занятие. удачи!
+спасибо!
+пока!
+пока!
+[RESET]
+здарова бро
+привет, что такое?
+да ниче, хотел спросить как дела у тебя
+понял, у меня все хорошо!
+отлично, я рад!
+а у тебя как дела?
+да и у меня все в порядке.
+это замечательно!
+[RESET]
+привет, как сам?  
+да норм, кофе пью. а ты?  
+тоже ничего, работу доделываю.  
+понимаю, удачи с дедлайнами!  
+[RESET]

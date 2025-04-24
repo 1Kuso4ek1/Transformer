@@ -9,20 +9,26 @@ public:
     TokensDataset(
         const std::vector<std::string>& data,
         Tokenizer& tokenizer,
-        size_t maxSize
+        size_t maxSize,
+        bool roles
     ) : maxSize(maxSize)
+    {
+        if(roles)
+            learnByRoles(data, tokenizer);
+        else
+            learnNextToken(data, tokenizer);
+
+        encodeRawData(tokenizer);
+    }
+
+    void learnNextToken(
+        const std::vector<std::string>& data,
+        Tokenizer& tokenizer
+    )
     {
         for(const auto& i : data)
         {
-            std::string modified;
-
-            for(int j = 0; j < i.size(); j++)
-            {
-                if(std::ispunct(i[j]) && !modified.empty() && modified.back() != ' ')
-                    modified += ' ';
-                
-                modified += i[j];
-            }
+            auto modified = separatePunctuation(i);
 
             auto view = std::views::split(modified, ' ')
                 | std::ranges::to<std::vector<std::string>>();
@@ -33,7 +39,55 @@ public:
                 rawTargets.push_back(*(token + 1));
             }
         }
+    }
 
+    void learnByRoles(
+        const std::vector<std::string>& data,
+        Tokenizer& tokenizer
+    )
+    {
+        bool user = true;
+
+        std::string context;
+
+        for(const auto& i : data)
+        {
+            if(i == "[RESET]")
+            {
+                context.clear();
+                continue;
+            }
+
+            auto modified = separatePunctuation(i);
+            
+            if(user)
+                rawData.push_back(context + " [USER] " + modified);
+            else
+                rawTargets.push_back(modified + " [END]");
+
+            context += (user ? " [USER] " : " [ASSISTANT] ") + modified + ' ';
+
+            user = !user;
+        }
+    }
+
+    std::string separatePunctuation(const std::string& str)
+    {
+        std::string modified;
+
+        for(int j = 0; j < str.size(); j++)
+        {
+            if(std::ispunct(str[j]) && !modified.empty() && modified.back() != ' ')
+                modified += ' ';
+            
+            modified += str[j];
+        }
+
+        return modified;
+    }
+
+    void encodeRawData(Tokenizer& tokenizer)
+    {
         for(const auto& i : rawData)
         {
             auto tokens = tokenizer.encode(i);
@@ -46,7 +100,7 @@ public:
             auto tokens = tokenizer.encode(i);
             tokens.resize(maxSize, 0);
             this->targets.push_back(torch::tensor(tokens, torch::kInt64));
-        }       
+        }
     }
 
     torch::data::Example<> get(size_t index) override
