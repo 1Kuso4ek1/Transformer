@@ -8,7 +8,7 @@
 #include <torch/nn/functional/loss.h>
 #include <torch/nn/utils/clip_grad.h>
 #include <torch/optim/adam.h>
-#include <torch/optim/sgd.h>
+#include <torch/optim/schedulers/step_lr.h>
 #include <torch/serialize.h>
 
 template<class Loader, class Network>
@@ -34,7 +34,6 @@ public:
         optimizer(
             network->parameters(),
             torch::optim::AdamOptions(config.learningRate)
-                //.weight_decay(0.01)
         )
     {
         if(config.loadOptimizer)
@@ -66,7 +65,8 @@ public:
                     torch::nn::functional::cross_entropy(
                         output.view({ -1, output.size(-1) }),
                         target.view(-1),
-                        torch::nn::CrossEntropyLossOptions().ignore_index(0)
+                        torch::nn::CrossEntropyLossOptions()
+                            .ignore_index(0)
                     );
 
                 // Backward pass
@@ -78,11 +78,11 @@ public:
                 }
             }
 
-            /* if(epoch % 20 == 0)
+            if(epoch % 10 == 0)
             {
                 torch::save(network, "model.pt");
                 torch::save(optimizer, "optimizer.pt");
-            } */
+            }
 
             std::println("Epoch: {}\tLoss: {}", epoch + 1, loss.item<float>());
         }

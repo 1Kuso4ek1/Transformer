@@ -33,7 +33,7 @@ public:
             register_module(
                 "transformer",
                 torch::nn::Transformer(
-                    torch::nn::TransformerOptions(dModel, 4, 2, 2)
+                    torch::nn::TransformerOptions(dModel, 4, 1, 1)
                 )
             );
         linear = register_module("linear", torch::nn::Linear(dModel, vocabSize));

@@ -9,22 +9,15 @@ int main()
 {
     using std::operator""s;
 
-    const size_t batchSize = 128;
-    const size_t epochs = 300;
+    const size_t batchSize = 32;
+    const size_t epochs = 500;
     const size_t maxSize = 64;
-    const size_t maxSeq = 100;
-    const float learningRate = 0.003;
-    const float temperature = 0.7;
+    const size_t maxSeq = 64;
+    const float learningRate = 0.001;
+    const float temperature = 0.5;
+    const bool load = true;
 
-    std::vector<std::string> data;/*  =
-    {
-        "привет, как дела у тебя, дружище? все хорошо!"s,
-        "трансформеры это круто, так ведь? да, ты прав."s,
-        "внимание точно работает? да, именно так."s,
-        "мяу мур мурмяу мяу мяу мяу мяу мур"s,
-        "я - прикольная нейросеть, правда? ну да, реально."s,
-        "один, два, три, четыре, пять, шесть, семь, восемь"s
-    }; */
+    std::vector<std::string> data;
 
     std::ifstream file("../data/data.txt");
     std::string line;
@@ -57,9 +50,11 @@ int main()
     );
 
     auto transformer = std::make_shared<Transformer>(tokenizer.size(), maxSize, maxSeq);
-    torch::load(transformer, "model.pt");
 
-    Trainer(std::move(loader), transformer, { epochs, batchSize, learningRate, true }).train();
+    if(load)
+        torch::load(transformer, "model.pt");
+
+    Trainer(std::move(loader), transformer, { epochs, batchSize, learningRate, load }).train();
     Tester(std::move(testLoader), transformer, { 1 }).test(tokenizer);
 
     std::string context, userInput;
@@ -79,6 +74,10 @@ int main()
         context += " [USER] " + userInput;
 
         auto tokens = tokenizer.encode(context);
+        
+        if(tokens.size() > maxSize)
+            tokens.erase(tokens.begin(), tokens.begin() + tokens.size() - maxSize);
+
         tokens.resize(maxSize, 0);
 
         context += " [ASSISTANT] ";
@@ -90,7 +89,7 @@ int main()
 
         std::cout << "\n\n";
 
-        auto output = transformer->generate(tokens, maxSize, 16, temperature);
+        auto output = transformer->generate(tokens, maxSize, 128, temperature);
         std::cout << "Predicted: ";
         for(const auto& i : output)
             if(i != 0 && i != 2)

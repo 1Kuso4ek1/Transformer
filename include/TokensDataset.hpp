@@ -91,7 +91,12 @@ public:
         for(const auto& i : rawData)
         {
             auto tokens = tokenizer.encode(i);
+            
+            if(tokens.size() > maxSize)
+                tokens.erase(tokens.begin(), tokens.begin() + tokens.size() - maxSize);
+            
             tokens.resize(maxSize, 0);
+
             this->data.push_back(torch::tensor(tokens, torch::kInt64));
         }
 
