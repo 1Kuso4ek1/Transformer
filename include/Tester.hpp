@@ -37,7 +37,7 @@ public:
         {
             auto res = network->forward(batch.data);
 
-            auto index = res.argmax(-1);
+            auto probs = res[-1].argmax(-1);
 
             std::cout << "Test: ";
             for(int i = 0; i < batch.data.size(-1); i++)
@@ -46,9 +46,12 @@ public:
             std::cout << "\n\n";
 
             std::cout << "Predicted: ";
-            for(int i = 0; i < index.size(-1); i++)
-                if(index[-1][i].template item<int64_t>() != 0)
-                    std::cout << tokenizer.decode(index[-1][i].template item<int64_t>()) << ' ';
+            for(int i = 0; i < probs.size(-1); i++)
+            {
+                auto item = probs[i].template item<int64_t>();
+                if(item != 0 && item != 2)
+                    std::cout << tokenizer.decode(item) << ' ';
+            }
             std::cout << "\n\n";
         }
     }

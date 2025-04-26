@@ -33,7 +33,7 @@ public:
             register_module(
                 "transformer",
                 torch::nn::Transformer(
-                    torch::nn::TransformerOptions(dModel, 4, 1, 1)
+                    torch::nn::TransformerOptions(dModel, 8, 4, 4)
                 )
             );
         linear = register_module("linear", torch::nn::Linear(dModel, vocabSize));
@@ -66,7 +66,7 @@ public:
         do
         {
             output.push_back(probs[index++].item<int64_t>());
-        } while(output.back() != 2 && output.size() < maxTokens);
+        } while(output.back() != 2 && output.size() < maxTokens && index < probs.size(0));
 
         /* for(int i = 0; i < maxTokens; i++)
         {
@@ -127,7 +127,7 @@ public:
             transformer->forward(
                 data, data,
                 {}, {}, {},
-                srcMask, srcMask
+                srcMask//srcMask
             );
 
         res =

@@ -55,6 +55,7 @@ public:
             if(i == "[RESET]")
             {
                 context.clear();
+                user = true;
                 continue;
             }
 

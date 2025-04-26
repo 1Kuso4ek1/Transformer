@@ -7,15 +7,14 @@
 
 int main()
 {
-    using std::operator""s;
-
     const size_t batchSize = 32;
-    const size_t epochs = 500;
+    const size_t epochs = 200;
     const size_t maxSize = 64;
-    const size_t maxSeq = 64;
-    const float learningRate = 0.001;
-    const float temperature = 0.5;
-    const bool load = true;
+    const size_t maxSeq = 100;
+    const float learningRate = 0.002;
+    const bool load = false;
+
+    float temperature = 0.5;
 
     std::vector<std::string> data;
 
@@ -68,6 +67,15 @@ int main()
         {
             context.clear();
             std::cout << "Context cleared.\n\n";
+            continue;
+        }
+        
+        auto pos = userInput.find("temperature");
+
+        if(pos != std::string::npos)
+        {
+            temperature = std::stof(userInput.substr(pos + 12));
+            std::cout << "Temperature set to " << temperature << ".\n\n";
             continue;
         }
 
