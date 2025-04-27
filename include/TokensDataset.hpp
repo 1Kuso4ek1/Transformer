@@ -72,6 +72,53 @@ public:
         }
     }
 
+    void learnByRolesNextToken(
+        const std::vector<std::string>& data,
+        Tokenizer& tokenizer
+    )
+    {
+        bool user = true;
+
+        std::string context;
+
+        for(const auto& i : data)
+        {
+            if(i == "[RESET]")
+            {
+                context.clear();
+                user = true;
+                continue;
+            }
+
+            auto modified = separatePunctuation(i);
+
+            if(user)
+                rawData.push_back(context + " [USER] " + modified + " [ASSISTANT]");
+            else
+            {
+                auto view = std::views::split(modified, ' ')
+                    | std::ranges::to<std::vector<std::string>>();
+
+                for(auto token = view.begin(); token < view.end(); token++)
+                {
+                    if(token == view.begin())
+                        rawTargets.push_back(*token);
+
+                    rawData.push_back(rawData.back() + ' ' + *token);
+
+                    if(token == view.end() - 1)
+                        rawTargets.push_back("[END]");
+                    else if(!(token + 1)->empty())
+                        rawTargets.push_back(*(token + 1));
+                }
+            }
+
+            context += (user ? " [USER] " : " [ASSISTANT] ") + modified + ' ';
+
+            user = !user;
+        }
+    }
+
     std::string separatePunctuation(const std::string& str)
     {
         std::string modified;

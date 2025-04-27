@@ -4,6 +4,7 @@
 #include <torch/nn/modules/activation.h>
 #include <torch/nn/modules/embedding.h>
 #include <torch/nn/modules/transformer.h>
+#include <torch/nn/modules/transformercoder.h>
 #include <torch/nn/modules/linear.h>
 #include <torch/nn/functional/activation.h>
 
@@ -29,11 +30,13 @@ public:
                     torch::nn::EmbeddingOptions(maxSeq, dModel)
                 )
             );
-        transformer =
+        decoder =
             register_module(
-                "transformer",
-                torch::nn::Transformer(
-                    torch::nn::TransformerOptions(dModel, 8, 4, 4)
+                "decoder",
+                torch::nn::TransformerDecoder(
+                    torch::nn::TransformerDecoderOptions(
+                        torch::nn::TransformerDecoderLayerOptions(dModel, 8), 4
+                    )
                 )
             );
         linear = register_module("linear", torch::nn::Linear(dModel, vocabSize));
@@ -68,7 +71,26 @@ public:
             output.push_back(probs[index++].item<int64_t>());
         } while(output.back() != 2 && output.size() < maxTokens && index < probs.size(0));
 
-        /* for(int i = 0; i < maxTokens; i++)
+        for(const auto& i : output)
+            std::cout << i << ' ';
+        std::cout << '\n';
+
+        return output;
+    }
+
+    std::vector<int64_t> generateSequential(std::vector<int64_t>&& tokens, size_t maxSize, size_t maxTokens, float temperature = 0.7)
+    {
+        std::vector<int64_t> output;
+        output.reserve(maxTokens);
+
+        eval();
+        to(global::device);
+
+        torch::NoGradGuard noGrad;
+
+        auto lastContextZero = std::find(tokens.begin(), tokens.end(), 0);
+
+        for(int i = 0; i < maxTokens && lastContextZero < tokens.end(); i++)
         {
             auto tensor =
                 torch::tensor(tokens, torch::kInt64)
@@ -76,33 +98,20 @@ public:
 
             auto res = forward(tensor);
 
-            // rewrite
-            auto probs = torch::softmax(res[-1].squeeze(0) / temperature, -1); */
-            /* torch::Tensor index;
-            try
-            {
-                index = torch::multinomial(probs, 1);
-            }
-            catch(...)
-            {
-                continue;
-            } */
+            auto probs = torch::softmax(res[-1].squeeze(0) / temperature, -1);
+            probs = torch::multinomial(probs, 1);
 
-            /* tokens.erase(tokens.begin());
-            tokens.push_back(0); */
+            auto token = probs[0].item<int64_t>();
 
-            /* auto firstZero = std::find(tokens.begin(), tokens.end(), 0);
+            if(token == 2)
+                break;
 
-            for(int i = 0; i < probs.size(-1) && firstZero + i < tokens.end(); i++)
-                if((probs[i].item<int64_t>() != 0))
-                {
-                    *(firstZero++) = (probs[i].item<int64_t>());
-                    output.push_back(probs[i].item<int64_t>());
-                    
-                    //if(output.back() == (index[i + 1].item<int64_t>()))
-                        break;
-                }
-        } */
+            *(lastContextZero++) = token;
+            output.push_back(token);
+
+            if(tokens.size() > maxSize)
+                tokens.erase(tokens.begin());
+        }
 
         for(const auto& i : output)
             std::cout << i << ' ';
@@ -111,29 +120,23 @@ public:
         return output;
     }
 
-    // rewrite
     torch::Tensor forward(torch::Tensor src)
     {
-        auto posEncoderMask = (src != 0).to(torch::kFloat32).unsqueeze(-1);
-
         auto pos = torch::arange(0, src.size(1), torch::kLong);
-        pos = posEncoder(pos).unsqueeze(0) * posEncoderMask;
+        pos = posEncoder(pos).unsqueeze(0);
 
         auto data = (embedding(src) + pos).permute({ 1, 0, 2 });
 
-        auto srcMask = (src == 0);
+        auto paddingMask = (src == 0);
+        auto tgtMask = torch::nn::TransformerImpl::generate_square_subsequent_mask(src.size(1));
 
         auto res =
-            transformer->forward(
-                data, data,
-                {}, {}, {},
-                srcMask//srcMask
+            decoder->forward(
+                data, data, {}, {},
+                paddingMask
             );
 
-        res =
-            //torch::nn::functional::relu(
-                linear(res.permute({ 1, 0, 2 }).contiguous());
-            //);
+        res = linear(res.permute({ 1, 0, 2 }).contiguous());
 
         return res;
     }
@@ -141,6 +144,6 @@ public:
 private:
     torch::nn::Embedding embedding{ nullptr };
     torch::nn::Embedding posEncoder{ nullptr };
-    torch::nn::Transformer transformer{ nullptr };
+    torch::nn::TransformerDecoder decoder{ nullptr };
     torch::nn::Linear linear{ nullptr };
 };
