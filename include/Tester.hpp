@@ -2,7 +2,7 @@
 #include <memory>
 #include <print>
 
-#include <Global.hpp>
+#include <Utils.hpp>
 #include <Tokenizer.hpp>
 
 #include <ATen/core/TensorBody.h>

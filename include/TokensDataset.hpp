@@ -119,21 +119,6 @@ public:
         }
     }
 
-    std::string separatePunctuation(const std::string& str)
-    {
-        std::string modified;
-
-        for(int j = 0; j < str.size(); j++)
-        {
-            if(std::ispunct(str[j]) && !modified.empty() && modified.back() != ' ')
-                modified += ' ';
-            
-            modified += str[j];
-        }
-
-        return modified;
-    }
-
     void encodeRawData(Tokenizer& tokenizer)
     {
         for(const auto& i : rawData)

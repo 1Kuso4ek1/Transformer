@@ -2,13 +2,13 @@
 #include <Transformer.hpp>
 #include <Trainer.hpp>
 #include <Tester.hpp>
-
-#include <fstream>
+#include <Loader.hpp>
+#include <Augmenter.hpp>
 
 int main()
 {
-    const size_t batchSize = 32;
-    const size_t epochs = 200;
+    const size_t batchSize = 64;
+    const size_t epochs = 100;
     const size_t maxSize = 64;
     const size_t maxSeq = 100;
     const float learningRate = 0.002;
@@ -16,30 +16,34 @@ int main()
 
     float temperature = 0.5;
 
-    std::vector<std::string> data;
+    Loader dialogueLoader("../data/data.txt");
+    Loader augmentLoader("../data/augment.txt");
 
-    std::ifstream file("../data/data.txt");
-    std::string line;
+    const auto& data = dialogueLoader.getData();
+    const auto& augment = augmentLoader.getData();
 
-    while(std::getline(file, line))
-        data.push_back(line);
+    Augmenter augmenter(data, augment);
+
+    const auto& augmentedData = augmenter.getAugmented();
 
     Tokenizer tokenizer;
     tokenizer.tokenize(data);
+    tokenizer.tokenize(augment);
 
     std::srand(std::time(0));
     torch::manual_seed(std::rand());
 
-    auto dataset = TokensDataset(data, tokenizer, maxSize, true)
+    auto dataset = TokensDataset(augmentedData, tokenizer, maxSize, true)
         .map(torch::data::transforms::Stack<>());
     
-    auto testDataset = TokensDataset(data, tokenizer, maxSize, true)
+    auto testDataset = TokensDataset(augmentedData, tokenizer, maxSize, true)
         .map(torch::data::transforms::Stack<>());
 
     auto loader = torch::data::make_data_loader(
         std::move(dataset),
         torch::data::DataLoaderOptions()
             .batch_size(batchSize)
+            .workers(12)
     );
 
     auto testLoader = torch::data::make_data_loader(

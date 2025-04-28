@@ -5,26 +5,24 @@
 #include <unordered_set>
 #include <print>
 
+#include <Utils.hpp>
+
 class Tokenizer
 {
 public:
     void tokenize(const std::vector<std::string>& data)
     {
         for(const auto& text : data)
-            for(const auto& token : std::views::split(text, ' '))
+        {
+            const auto modified = separatePunctuation(text);
+
+            for(const auto& token : std::views::split(modified, ' '))
             {
                 auto str = std::string(std::string_view(token));
                 
-                for(int i = 0; i < str.size(); i++)
-                    if(std::ispunct(str[i]))
-                    {
-                        tokens.insert(std::string(1, str[i]));
-                        str.erase(str.begin() + i);
-                    }
-                
-                if(!str.empty())
-                    tokens.insert(str);
+                tokens.insert(str);
             }
+        }
 
         int64_t id = 5;
         for(const auto& token : tokens)
@@ -34,15 +32,17 @@ public:
     std::vector<int64_t> encode(const std::string_view& text)
     {
         std::vector<int64_t> encoded;
+
+        const auto modified = separatePunctuation(std::string(text));
         
-        for(const auto& token : std::views::split(text, ' '))
+        for(const auto& token : std::views::split(modified, ' '))
         {
             if(token.empty())
                 continue;
 
             auto str = std::string(std::string_view(token));
 
-            std::vector<int64_t> punctuation;
+            /* std::vector<int64_t> punctuation;
 
             if(str[0] != '[')
             {
@@ -54,15 +54,15 @@ public:
                         str.erase(str.begin() + i);
                     }
                 }
-            }
+            } */
 
             auto it = tokenIds.find(str);
 
             if(it != tokenIds.end())
-                encoded.push_back(it->second);
+                encoded.push_back(it->second);/* 
 
             for(const auto& i : punctuation)
-                encoded.push_back(i);
+                encoded.push_back(i); */
         }
 
         return encoded;

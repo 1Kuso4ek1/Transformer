@@ -8,7 +8,7 @@
 #include <torch/nn/modules/linear.h>
 #include <torch/nn/functional/activation.h>
 
-#include <Global.hpp>
+#include <Utils.hpp>
 
 class Transformer : public torch::nn::Module
 {
@@ -35,7 +35,10 @@ public:
                 "decoder",
                 torch::nn::TransformerDecoder(
                     torch::nn::TransformerDecoderOptions(
-                        torch::nn::TransformerDecoderLayerOptions(dModel, 8), 4
+                        torch::nn::TransformerDecoderLayerOptions(dModel, 8)
+                            .dropout(0.1)
+                            .activation(torch::nn::GELU()),
+                        4
                     )
                 )
             );
