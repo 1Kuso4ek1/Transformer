@@ -7,11 +7,11 @@
 
 int main()
 {
-    const size_t batchSize = 64;
-    const size_t epochs = 100;
+    const size_t batchSize = 32;
+    const size_t epochs = 20;
     const size_t maxSize = 64;
     const size_t maxSeq = 100;
-    const float learningRate = 0.002;
+    const float learningRate = 0.003;
     const bool load = false;
 
     float temperature = 0.5;
@@ -24,11 +24,11 @@ int main()
 
     Augmenter augmenter(data, augment);
 
-    const auto& augmentedData = augmenter.getAugmented();
+    const auto& augmentedData = data;//augmenter.getAugmented();
 
     Tokenizer tokenizer;
     tokenizer.tokenize(data);
-    tokenizer.tokenize(augment);
+    //tokenizer.tokenize(augment);
 
     std::srand(std::time(0));
     torch::manual_seed(std::rand());
@@ -62,6 +62,8 @@ int main()
 
     std::string context, userInput;
 
+    int passIteration{};
+
     while(userInput != "exit")
     {
         std::cout << "> ";
@@ -83,16 +85,16 @@ int main()
             continue;
         }
 
-        context += " [USER] " + userInput;
+        if(userInput != "pass")
+            context += " [USER] " + userInput;
 
-        auto tokens = tokenizer.encode(context);
+        auto tokens = tokenizer.encode(context + " [ASSISTANT] ");
         
         if(tokens.size() > maxSize)
             tokens.erase(tokens.begin(), tokens.begin() + tokens.size() - maxSize);
 
-        tokens.resize(maxSize, 0);
-
-        context += " [ASSISTANT] ";
+        if(userInput != "pass")
+            context += " [ASSISTANT] ";
 
         std::cout << "Encoded: ";
         for(const auto& i : tokens)
@@ -101,7 +103,7 @@ int main()
 
         std::cout << "\n\n";
 
-        auto output = transformer->generate(tokens, maxSize, 128, temperature);
+        auto output = transformer->generateSequential(std::move(tokens), maxSize, 128, temperature);
         std::cout << "Predicted: ";
         for(const auto& i : output)
             if(i != 0 && i != 2)

@@ -34,6 +34,8 @@ public:
         optimizer(
             network->parameters(),
             torch::optim::AdamOptions(config.learningRate)
+            .betas({ 0.9, 0.98 })
+            .eps(1e-9)
         )
     {
         if(config.loadOptimizer)

@@ -49,7 +49,7 @@ public:
             for(int i = 0; i < probs.size(-1); i++)
             {
                 auto item = probs[i].template item<int64_t>();
-                if(item != 0 && item != 2)
+                if(item != 0/*  && item != 2 */)
                     std::cout << tokenizer.decode(item) << ' ';
             }
             std::cout << "\n\n";

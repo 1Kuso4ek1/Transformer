@@ -74,9 +74,9 @@ public:
             output.push_back(probs[index++].item<int64_t>());
         } while(output.back() != 2 && output.size() < maxTokens && index < probs.size(0));
 
-        for(const auto& i : output)
+        /* for(const auto& i : output)
             std::cout << i << ' ';
-        std::cout << '\n';
+        std::cout << '\n'; */
 
         return output;
     }
@@ -91,34 +91,36 @@ public:
 
         torch::NoGradGuard noGrad;
 
-        auto lastContextZero = std::find(tokens.begin(), tokens.end(), 0);
+        //auto lastContextZero = std::find(tokens.begin(), tokens.end(), 0);
 
-        for(int i = 0; i < maxTokens && lastContextZero < tokens.end(); i++)
+        for(int i = 0; i < maxTokens; i++)
         {
             auto tensor =
                 torch::tensor(tokens, torch::kInt64)
                     .unsqueeze(0);
 
             auto res = forward(tensor);
+            res.transpose(0, 1);
 
-            auto probs = torch::softmax(res[-1].squeeze(0) / temperature, -1);
-            probs = torch::multinomial(probs, 1);
-
-            auto token = probs[0].item<int64_t>();
+            auto last = res[0][res.size(1) - 1];
+            auto token = last.argmax().item<int64_t>();
 
             if(token == 2)
                 break;
 
-            *(lastContextZero++) = token;
+            //*(lastContextZero++) = token;
+            tokens.push_back(token);
             output.push_back(token);
 
             if(tokens.size() > maxSize)
                 tokens.erase(tokens.begin());
         }
 
-        for(const auto& i : output)
+        /* for(const auto& i : output)
             std::cout << i << ' ';
-        std::cout << '\n';
+        std::cout << '\n'; */
+
+        
 
         return output;
     }
@@ -131,12 +133,15 @@ public:
         auto data = (embedding(src) + pos).permute({ 1, 0, 2 });
 
         auto paddingMask = (src == 0);
+        auto memoryMask = torch::full({ src.size(1), src.size(1) }, -1e9);
+        memoryMask.index_put_({ torch::indexing::Slice(), 0 }, 0.0f);
+
         auto tgtMask = torch::nn::TransformerImpl::generate_square_subsequent_mask(src.size(1));
 
         auto res =
             decoder->forward(
-                data, data, {}, {},
-                paddingMask
+                data, data, tgtMask, {},
+                paddingMask, paddingMask
             );
 
         res = linear(res.permute({ 1, 0, 2 }).contiguous());

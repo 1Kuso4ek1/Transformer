@@ -14,7 +14,7 @@ public:
     ) : maxSize(maxSize)
     {
         if(roles)
-            learnByRoles(data, tokenizer);
+            learnByRolesNextTokenCompleteSequenceShiftedAndAlsoThisFunctionNameIsAnAbloluteMonstrosityGodHelpMePleaseImLosingMyMind(data, tokenizer);
         else
             learnNextToken(data, tokenizer);
 
@@ -119,6 +119,62 @@ public:
         }
     }
 
+    void learnByRolesNextTokenCompleteSequenceShiftedAndAlsoThisFunctionNameIsAnAbloluteMonstrosityGodHelpMePleaseImLosingMyMind(
+        const std::vector<std::string>& data,
+        Tokenizer& tokenizer
+    )
+    {
+        bool user = true;
+
+        std::string context;
+
+        for(const auto& i : data)
+        {
+            if(i == "[RESET]")
+            {
+                context.clear();
+                user = true;
+                continue;
+            }
+
+            auto modified = separatePunctuation(i);
+
+            if(user)
+            {
+                rawData.push_back(context + " [USER] " + modified + " [ASSISTANT]");
+            }
+            else
+            {
+                rawTargets.push_back(context + " [ASSISTANT] " + modified + " [END]");
+                rawData.back() += ' ' + modified + " [END]";
+            }
+            /* {
+                auto view = std::views::split(rawData.back() + ' ' + modified, ' ')
+                    | std::ranges::to<std::vector<std::string>>();
+
+                std::string src, tgt;
+
+                for(auto token = view.begin(); token < view.end(); token++)
+                {
+                    if(token > view.begin())
+                        tgt += ' ' + *token;
+                    if(token < view.end() - 1)
+                        src += ' ' + *token;
+
+                    if(token == view.end() - 1)
+                        tgt += " [END]";
+                }
+
+                rawData.push_back(src);
+                rawTargets.push_back(tgt);
+            } */
+
+            context += (user ? " [USER] " : " [ASSISTANT] ") + modified + ' ';
+
+            user = !user;
+        }
+    }
+
     void encodeRawData(Tokenizer& tokenizer)
     {
         for(const auto& i : rawData)
@@ -143,14 +199,14 @@ public:
 
     torch::data::Example<> get(size_t index) override
     {
-        auto src = data[index];
-        auto tgt = index < targets.size() ? targets[index] : torch::zeros({ (long)maxSize }, torch::kInt64);
+        auto seq = data[index];
+        //auto tgt = index < targets.size() ? targets[index] : torch::zeros({ (long)maxSize }, torch::kInt64);
 
         /* std::cout << "Src: " << src << '\n';
         std::cout << "Tgt: " << tgt << '\n'; */
         
-        /* torch::Tensor src = seq.slice(0, 0, seq.size(0) - 1);
-        torch::Tensor tgt = seq.slice(0, 1, seq.size(0)); */
+        auto src = seq.slice(0, 0, seq.size(0) - 1);
+        auto tgt = seq.slice(0, 1, seq.size(0));
 
         return { src, tgt };
     }

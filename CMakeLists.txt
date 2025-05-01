@@ -4,7 +4,7 @@ project(LibTorchMNIST)
 
 include(FetchContent)
 
-set(LIBTORCH_URL "https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.6.0%2Bcpu.zip")
+set(LIBTORCH_URL "https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.0%2Bcpu.zip")
 
 FetchContent_Declare(
     libtorch

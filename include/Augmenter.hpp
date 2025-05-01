@@ -27,7 +27,7 @@ public:
 
                 const auto modified = separatePunctuation(j);
 
-                auto view = std::views::split(modified, ' ')
+                const auto view = std::views::split(modified, ' ')
                     | std::ranges::to<std::vector<std::string>>();
 
                 for(const auto& word : view)
