@@ -49,7 +49,7 @@ public:
         torch::nn::init::xavier_uniform_(linear->weight);
     }
 
-    std::vector<int64_t> generate(const std::vector<int64_t>& tokens, size_t maxSize, size_t maxTokens, float temperature = 0.7)
+    std::vector<int64_t> generate(std::vector<int64_t>&& tokens, size_t maxSize, size_t maxTokens, float temperature = 0.7)
     {
         std::vector<int64_t> output;
         output.reserve(maxTokens);
@@ -58,40 +58,6 @@ public:
         to(global::device);
 
         torch::NoGradGuard noGrad;
-
-        auto tensor =
-            torch::tensor(tokens, torch::kInt64)
-                .unsqueeze(0);
-
-        auto res = forward(tensor);
-
-        auto probs = torch::softmax(res[-1].squeeze(0) / temperature, -1);
-        probs = torch::multinomial(probs, 1);
-
-        int index{};
-        do
-        {
-            output.push_back(probs[index++].item<int64_t>());
-        } while(output.back() != 2 && output.size() < maxTokens && index < probs.size(0));
-
-        /* for(const auto& i : output)
-            std::cout << i << ' ';
-        std::cout << '\n'; */
-
-        return output;
-    }
-
-    std::vector<int64_t> generateSequential(std::vector<int64_t>&& tokens, size_t maxSize, size_t maxTokens, float temperature = 0.7)
-    {
-        std::vector<int64_t> output;
-        output.reserve(maxTokens);
-
-        eval();
-        to(global::device);
-
-        torch::NoGradGuard noGrad;
-
-        //auto lastContextZero = std::find(tokens.begin(), tokens.end(), 0);
 
         for(int i = 0; i < maxTokens; i++)
         {
@@ -103,24 +69,24 @@ public:
             res.transpose(0, 1);
 
             auto last = res[0][res.size(1) - 1];
+
+            for(auto& i : { 0, 1, 3, 4 })
+                last[i] = -1e9;
+            
             auto token = last.argmax().item<int64_t>();
+
+            /* auto probs = torch::softmax(res[-1].squeeze(0) / temperature, -1);
+            probs = torch::multinomial(probs, 1); */
 
             if(token == 2)
                 break;
 
-            //*(lastContextZero++) = token;
-            tokens.push_back(token);
+            tokens.push_back(token); // Used like a context
             output.push_back(token);
 
             if(tokens.size() > maxSize)
                 tokens.erase(tokens.begin());
         }
-
-        /* for(const auto& i : output)
-            std::cout << i << ' ';
-        std::cout << '\n'; */
-
-        
 
         return output;
     }
@@ -133,8 +99,8 @@ public:
         auto data = (embedding(src) + pos).permute({ 1, 0, 2 });
 
         auto paddingMask = (src == 0);
-        auto memoryMask = torch::full({ src.size(1), src.size(1) }, -1e9);
-        memoryMask.index_put_({ torch::indexing::Slice(), 0 }, 0.0f);
+        /* auto memoryMask = torch::full({ src.size(1), src.size(1) }, -1e9);
+        memoryMask.index_put_({ torch::indexing::Slice(), 0 }, 0.0f); */
 
         auto tgtMask = torch::nn::TransformerImpl::generate_square_subsequent_mask(src.size(1));
 

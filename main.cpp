@@ -7,11 +7,11 @@
 
 int main()
 {
-    const size_t batchSize = 32;
-    const size_t epochs = 20;
+    const size_t batchSize = 64;
+    const size_t epochs = 50;
     const size_t maxSize = 64;
     const size_t maxSeq = 100;
-    const float learningRate = 0.003;
+    const float learningRate = 0.001;
     const bool load = false;
 
     float temperature = 0.5;
@@ -24,11 +24,11 @@ int main()
 
     Augmenter augmenter(data, augment);
 
-    const auto& augmentedData = data;//augmenter.getAugmented();
+    const auto& augmentedData = augmenter.getAugmented();
 
     Tokenizer tokenizer;
     tokenizer.tokenize(data);
-    //tokenizer.tokenize(augment);
+    tokenizer.tokenize(augment);
 
     std::srand(std::time(0));
     torch::manual_seed(std::rand());
@@ -103,7 +103,7 @@ int main()
 
         std::cout << "\n\n";
 
-        auto output = transformer->generateSequential(std::move(tokens), maxSize, 128, temperature);
+        auto output = transformer->generate(std::move(tokens), maxSize, 128, temperature);
         std::cout << "Predicted: ";
         for(const auto& i : output)
             if(i != 0 && i != 2)

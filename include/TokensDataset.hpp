@@ -14,7 +14,7 @@ public:
     ) : maxSize(maxSize)
     {
         if(roles)
-            learnByRolesNextTokenCompleteSequenceShiftedAndAlsoThisFunctionNameIsAnAbloluteMonstrosityGodHelpMePleaseImLosingMyMind(data, tokenizer);
+            learnByRolesNoTargets(data, tokenizer);
         else
             learnNextToken(data, tokenizer);
 
@@ -119,7 +119,7 @@ public:
         }
     }
 
-    void learnByRolesNextTokenCompleteSequenceShiftedAndAlsoThisFunctionNameIsAnAbloluteMonstrosityGodHelpMePleaseImLosingMyMind(
+    void learnByRolesNoTargets(
         const std::vector<std::string>& data,
         Tokenizer& tokenizer
     )
@@ -140,34 +140,9 @@ public:
             auto modified = separatePunctuation(i);
 
             if(user)
-            {
-                rawData.push_back(context + " [USER] " + modified + " [ASSISTANT]");
-            }
+                rawData.push_back(context + " [USER] " + modified + " [ASSISTANT] ");
             else
-            {
-                rawTargets.push_back(context + " [ASSISTANT] " + modified + " [END]");
-                rawData.back() += ' ' + modified + " [END]";
-            }
-            /* {
-                auto view = std::views::split(rawData.back() + ' ' + modified, ' ')
-                    | std::ranges::to<std::vector<std::string>>();
-
-                std::string src, tgt;
-
-                for(auto token = view.begin(); token < view.end(); token++)
-                {
-                    if(token > view.begin())
-                        tgt += ' ' + *token;
-                    if(token < view.end() - 1)
-                        src += ' ' + *token;
-
-                    if(token == view.end() - 1)
-                        tgt += " [END]";
-                }
-
-                rawData.push_back(src);
-                rawTargets.push_back(tgt);
-            } */
+                rawData.back() += modified + " [END]";
 
             context += (user ? " [USER] " : " [ASSISTANT] ") + modified + ' ';
 
@@ -200,10 +175,6 @@ public:
     torch::data::Example<> get(size_t index) override
     {
         auto seq = data[index];
-        //auto tgt = index < targets.size() ? targets[index] : torch::zeros({ (long)maxSize }, torch::kInt64);
-
-        /* std::cout << "Src: " << src << '\n';
-        std::cout << "Tgt: " << tgt << '\n'; */
         
         auto src = seq.slice(0, 0, seq.size(0) - 1);
         auto tgt = seq.slice(0, 1, seq.size(0));
