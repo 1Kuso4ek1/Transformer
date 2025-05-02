@@ -73,10 +73,10 @@ public:
             for(auto& i : { 0, 1, 3, 4 })
                 last[i] = -1e9;
             
-            auto token = last.argmax().item<int64_t>();
+            //auto token = last.argmax().item<int64_t>();
 
-            /* auto probs = torch::softmax(res[-1].squeeze(0) / temperature, -1);
-            probs = torch::multinomial(probs, 1); */
+            auto probs = torch::softmax(last / temperature, -1);
+            auto token = torch::multinomial(probs, 1).item<int64_t>();
 
             if(token == 2)
                 break;
@@ -99,14 +99,14 @@ public:
         auto data = (embedding(src) + pos).permute({ 1, 0, 2 });
 
         auto paddingMask = (src == 0);
-        /* auto memoryMask = torch::full({ src.size(1), src.size(1) }, -1e9);
-        memoryMask.index_put_({ torch::indexing::Slice(), 0 }, 0.0f); */
+        auto memoryMask = torch::full({ src.size(1), src.size(1) }, -std::numeric_limits<float>::infinity());
+        memoryMask.index_put_({ torch::indexing::Slice(), 0 }, 0.0f);
 
         auto tgtMask = torch::nn::TransformerImpl::generate_square_subsequent_mask(src.size(1));
 
         auto res =
             decoder->forward(
-                data, data, tgtMask, {},
+                data, data, tgtMask, memoryMask,
                 paddingMask, paddingMask
             );
 

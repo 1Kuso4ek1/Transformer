@@ -5,60 +5,21 @@
 #include <Loader.hpp>
 #include <Augmenter.hpp>
 
-int main()
+struct Config
 {
-    const size_t batchSize = 64;
-    const size_t epochs = 50;
-    const size_t maxSize = 64;
-    const size_t maxSeq = 100;
-    const float learningRate = 0.001;
-    const bool load = false;
+    int batchSize, epochs;
+    size_t maxSize, maxSeq;
+    float learningRate;
+    bool load;
+};
 
+void inference(
+    const Tokenizer& tokenizer,
+    std::shared_ptr<Transformer> transformer,
+    size_t maxSize
+)
+{
     float temperature = 0.5;
-
-    Loader dialogueLoader("../data/data.txt");
-    Loader augmentLoader("../data/augment.txt");
-
-    const auto& data = dialogueLoader.getData();
-    const auto& augment = augmentLoader.getData();
-
-    Augmenter augmenter(data, augment);
-
-    const auto& augmentedData = augmenter.getAugmented();
-
-    Tokenizer tokenizer;
-    tokenizer.tokenize(data);
-    tokenizer.tokenize(augment);
-
-    std::srand(std::time(0));
-    torch::manual_seed(std::rand());
-
-    auto dataset = TokensDataset(augmentedData, tokenizer, maxSize, true)
-        .map(torch::data::transforms::Stack<>());
-    
-    auto testDataset = TokensDataset(augmentedData, tokenizer, maxSize, true)
-        .map(torch::data::transforms::Stack<>());
-
-    auto loader = torch::data::make_data_loader(
-        std::move(dataset),
-        torch::data::DataLoaderOptions()
-            .batch_size(batchSize)
-            .workers(12)
-    );
-
-    auto testLoader = torch::data::make_data_loader(
-        std::move(testDataset),
-        torch::data::DataLoaderOptions()
-            .batch_size(1)
-    );
-
-    auto transformer = std::make_shared<Transformer>(tokenizer.size(), maxSize, maxSeq);
-
-    if(load)
-        torch::load(transformer, "model.pt");
-
-    Trainer(std::move(loader), transformer, { epochs, batchSize, learningRate, load }).train();
-    Tester(std::move(testLoader), transformer, { 1 }).test(tokenizer);
 
     std::string context, userInput;
 
@@ -96,15 +57,8 @@ int main()
         if(userInput != "pass")
             context += " [ASSISTANT] ";
 
-        std::cout << "Encoded: ";
-        for(const auto& i : tokens)
-            if(i != 0)
-                std::cout << tokenizer.decode(i) << ' ';
-
-        std::cout << "\n\n";
-
         auto output = transformer->generate(std::move(tokens), maxSize, 128, temperature);
-        std::cout << "Predicted: ";
+        std::cout << "\nPredicted: ";
         for(const auto& i : output)
             if(i != 0 && i != 2)
             {
@@ -115,4 +69,57 @@ int main()
 
         std::cout << "\n\n";
     }
+}
+
+int main()
+{
+    const Config config { 32, 10, 64, 100, 0.002, true };
+
+    float temperature = 0.5;
+
+    Loader dialogueLoader("../data/data.txt");
+    Loader augmentLoader("../data/augment.txt");
+
+    const auto& data = dialogueLoader.getData();
+    const auto& augment = augmentLoader.getData();
+
+    Augmenter augmenter(data, augment);
+
+    const auto& augmentedData = augmenter.getAugmented();
+
+    Tokenizer tokenizer;
+    tokenizer.tokenize(data);
+    tokenizer.tokenize(augment);
+
+    std::srand(std::time(0));
+    torch::manual_seed(std::rand());
+
+    auto dataset = TokensDataset(augmentedData, tokenizer, config.maxSize, true)
+        .map(torch::data::transforms::Stack<>());
+    
+    auto testDataset = TokensDataset(augmentedData, tokenizer, config.maxSize, true)
+        .map(torch::data::transforms::Stack<>());
+
+    auto loader = torch::data::make_data_loader(
+        std::move(dataset),
+        torch::data::DataLoaderOptions()
+            .batch_size(config.batchSize)
+            .workers(12)
+    );
+
+    auto testLoader = torch::data::make_data_loader(
+        std::move(testDataset),
+        torch::data::DataLoaderOptions()
+            .batch_size(1)
+    );
+
+    auto transformer = std::make_shared<Transformer>(tokenizer.size(), config.maxSize, config.maxSeq);
+
+    if(config.load)
+        torch::load(transformer, "model.pt");
+
+    Trainer(std::move(loader), transformer, { config.epochs, config.batchSize, config.learningRate, config.load }).train();
+    Tester(std::move(testLoader), transformer, { 1 }).test(tokenizer);
+
+    inference(tokenizer, transformer, config.maxSize);
 }

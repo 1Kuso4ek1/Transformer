@@ -29,7 +29,7 @@ public:
             tokenIds[token] = id++;
     }
 
-    std::vector<int64_t> encode(const std::string_view& text)
+    std::vector<int64_t> encode(const std::string_view& text) const
     {
         std::vector<int64_t> encoded;
 
@@ -51,7 +51,7 @@ public:
         return encoded;
     }
 
-    std::string decode(int64_t token)
+    std::string decode(int64_t token) const
     {
         for(const auto& [key, val] : tokenIds)
             if(val == token)
