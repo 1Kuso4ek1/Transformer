@@ -9,7 +9,7 @@
 class Inferencer {
 public:
     Inferencer(const Tokenizer& tokenizer, std::shared_ptr<Transformer> transformer, size_t maxSize)
-        : tokenizer(tokenizer), transformer(transformer), maxSize(maxSize), temperature(0.5)
+        : tokenizer(tokenizer), transformer(transformer), maxSize(maxSize), temperature(0.5), k(10)
     {}
 
     void run()
@@ -36,9 +36,11 @@ public:
 private:
     void printInstructions()
     {
-        std::println("Inference mode. Type 'exit' to quit.");
+        std::println("Inference mode.");
+        std::println("Type 'exit' to quit.");
         std::println("Type 'reset' to clear context.");
         std::println("Type 'temperature <value>' to set temperature.");
+        std::println("Type 'k <value>' to set the value of k for top-k sampling.");
         std::println("Type 'pass' to skip the input.\n");
     }
 
@@ -62,6 +64,15 @@ private:
             std::println("Temperature set to {}.\n", temperature);
 
             return "temperature";
+        }
+        
+        pos = userInput.find("k");
+        if(pos != std::string::npos)
+        {
+            k = std::stoi(userInput.substr(pos + 2));
+            std::println("Top-k set to {}.\n", k);
+
+            return "k";
         }
 
         return "";
@@ -104,6 +115,7 @@ private:
     std::shared_ptr<Transformer> transformer;
     
     size_t maxSize;
+    int k;
     float temperature;
 
     std::string context;

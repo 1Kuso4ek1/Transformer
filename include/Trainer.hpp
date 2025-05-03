@@ -72,10 +72,13 @@ public:
                 }
             }
 
-            if(epoch % 10 == 0)
+            if((epoch + 1) % 10 == 0)
             {
-                torch::save(network, config.modelPath);
-                torch::save(optimizer, config.optimizerPath);
+                static auto modelFilename = std::filesystem::path(config.modelPath).stem().string();
+                static auto optFilename = std::filesystem::path(config.optimizerPath).stem().string();
+
+                torch::save(network, std::format("{}_epoch_{}.pt", modelFilename, epoch + 1));
+                torch::save(optimizer, std::format("{}_epoch_{}.pt", optFilename, epoch + 1));
             }
 
             std::println("Epoch: {}\tLoss: {}", epoch + 1, loss.item<float>());

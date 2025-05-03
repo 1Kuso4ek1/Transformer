@@ -38,7 +38,7 @@ public:
                 torch::nn::TransformerDecoder(
                     torch::nn::TransformerDecoderOptions(
                         torch::nn::TransformerDecoderLayerOptions(dModel, 8)
-                            .dropout(0.1)
+                            .dropout(0.2)
                             .activation(torch::nn::GELU()),
                         4
                     )
@@ -51,7 +51,10 @@ public:
         torch::nn::init::xavier_uniform_(linear->weight);
     }
 
-    std::generator<int64_t> generate(std::vector<int64_t>&& tokens, size_t maxSize, size_t maxTokens, float temperature = 0.7)
+    std::generator<int64_t> generate(
+        std::vector<int64_t>&& tokens,
+        size_t maxSize, size_t maxTokens,
+        float temperature = 0.7, int k = 10)
     {
         eval();
         to(global::device);
@@ -65,15 +68,7 @@ public:
                     .unsqueeze(0);
 
             auto res = forward(tensor);
-            res.transpose(0, 1);
-
-            auto last = res[0][res.size(1) - 1];
-
-            for(auto& i : { 0, 1, 3, 4 }) // Forbidden tokens
-                last[i] = -1e9;
-
-            auto probs = torch::softmax(last / temperature, -1);
-            auto token = torch::multinomial(probs, 1).item<int64_t>();
+            auto token = sampleTopK(res, temperature, k);
 
             if(token == 2)
                 break;
@@ -109,6 +104,27 @@ public:
         res = linear(res.permute({ 1, 0, 2 }).contiguous());
 
         return res;
+    }
+
+private:
+    int64_t sampleTopK(const torch::Tensor& res, float temperature, int64_t k)
+    {
+        auto last = res[0][res.size(1) - 1];
+
+        for(auto& i : { 0, 1, 3, 4 }) // Forbidden tokens
+            last[i] = -1e9;
+
+        auto probs = torch::softmax(last / temperature, -1);
+        auto topK = torch::topk(probs, k);
+
+        probs.zero_();
+        probs.index_put_({ std::get<1>(topK) }, std::get<0>(topK));
+
+        probs = probs / probs.sum();
+
+        auto token = torch::multinomial(probs, 1).item<int64_t>();
+
+        return token;
     }
 
 private:
