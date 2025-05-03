@@ -1,0 +1,12 @@
+{
+    "augmentPath": "../data/augment.txt",
+    "dModel": 128,
+    "dataPath": "../data/data.txt",
+    "epochs": 0,
+    "learningRate": 0.0020000000949949026,
+    "load": true,
+    "maxSeq": 128,
+    "modelPath": "../pretrained/model.pt",
+    "optimizerPath": "../pretrained/optimizer.pt",
+    "trainBatch": 32
+}

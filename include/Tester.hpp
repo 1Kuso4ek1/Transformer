@@ -12,19 +12,11 @@ template<class Loader, class Network>
 class Tester
 {
 public:
-    struct Config
-    {
-        int batchSize;
-    };
-
-    Tester(
-        Loader&& loader,
-        std::shared_ptr<Network> network,
-        const Config& config
-    ) : loader(std::move(loader)), network(network), config(config)
+    Tester(Loader&& loader, std::shared_ptr<Network> network)
+        : loader(std::move(loader)), network(network)
     {}
 
-    void test(Tokenizer& tokenizer)
+    void test(const Tokenizer& tokenizer)
     {
         std::println("Testing...");
 
@@ -59,6 +51,4 @@ public:
 private:
     Loader loader;
     std::shared_ptr<Network> network;
-
-    Config config;
 };

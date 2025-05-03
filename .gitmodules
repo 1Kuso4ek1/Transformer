@@ -1,0 +1,6 @@
+[submodule "libraries/json"]
+	path = libraries/json
+	url = https://github.com/nlohmann/json.git
+[submodule "libraries/argparse"]
+	path = libraries/argparse
+	url = https://github.com/p-ranav/argparse.git

@@ -18,6 +18,9 @@ find_package(Torch REQUIRED PATHS ${libtorch_SOURCE_DIR})
 
 add_executable(nn main.cpp)
 
-target_link_libraries(nn "${TORCH_LIBRARIES}")
+target_link_libraries(nn "${TORCH_LIBRARIES}" argparse)
 
-include_directories(include/)
+include_directories(include/ libraries/json/include)
+
+add_subdirectory(libraries/json)
+add_subdirectory(libraries/argparse)

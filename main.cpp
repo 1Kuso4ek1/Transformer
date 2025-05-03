@@ -4,122 +4,70 @@
 #include <Tester.hpp>
 #include <Loader.hpp>
 #include <Augmenter.hpp>
+#include <Config.hpp>
+#include <CommandLine.hpp>
+#include <Inferencer.hpp>
+#include <DataManager.hpp>
 
-struct Config
+bool trainingConfirmation(const Config& config)
 {
-    int batchSize, epochs;
-    size_t maxSize, maxSeq;
-    float learningRate;
-    bool load;
-};
+    std::println("Training with the following configuration:");
+    std::println("Batch size: {}", config.trainBatch);
+    std::println("Epochs: {}", config.epochs);
+    std::println("Model size: {}", config.dModel);
+    std::println("Max sequence length: {}", config.maxSeq);
+    std::println("Learning rate: {}", config.learningRate);
 
-void inference(
-    const Tokenizer& tokenizer,
-    std::shared_ptr<Transformer> transformer,
-    size_t maxSize
-)
-{
-    float temperature = 0.5;
+    char choice;
+    std::print("\nContinue? (y/n): ");
+    std::cin >> choice;
 
-    std::string context, userInput;
-
-    int passIteration{};
-
-    while(userInput != "exit")
-    {
-        std::cout << "> ";
-        std::getline(std::cin, userInput);
-
-        if(userInput == "reset")
-        {
-            context.clear();
-            std::cout << "Context cleared.\n\n";
-            continue;
-        }
-        
-        auto pos = userInput.find("temperature");
-
-        if(pos != std::string::npos)
-        {
-            temperature = std::stof(userInput.substr(pos + 12));
-            std::cout << "Temperature set to " << temperature << ".\n\n";
-            continue;
-        }
-
-        if(userInput != "pass")
-            context += " [USER] " + userInput;
-
-        auto tokens = tokenizer.encode(context + " [ASSISTANT] ");
-        
-        if(tokens.size() > maxSize)
-            tokens.erase(tokens.begin(), tokens.begin() + tokens.size() - maxSize);
-
-        if(userInput != "pass")
-            context += " [ASSISTANT] ";
-
-        auto output = transformer->generate(std::move(tokens), maxSize, 128, temperature);
-        std::cout << "\nPredicted: ";
-        for(const auto& i : output)
-            if(i != 0 && i != 2)
-            {
-                auto token = tokenizer.decode(i);
-                std::cout << token << ' ';
-                context += token + ' ';
-            }
-
-        std::cout << "\n\n";
-    }
+    return choice == 'y' || choice == 'Y';
 }
 
-int main()
+void training(
+    const DataManager& dataManager,
+    std::shared_ptr<Transformer> transformer,
+    const Config& config
+)
 {
-    const Config config { 32, 10, 64, 100, 0.002, true };
+    if(!trainingConfirmation(config))
+    {
+        std::println("Training aborted.\n");
+        return;
+    }
 
-    float temperature = 0.5;
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    std::cin.clear();
 
-    Loader dialogueLoader("../data/data.txt");
-    Loader augmentLoader("../data/augment.txt");
+    auto [trainLoader, testLoader] = dataManager.createDataLoaders(config.trainBatch);
+    
+    Trainer(std::move(trainLoader), transformer, config).train();
+    Tester(std::move(testLoader), transformer).test(dataManager.getTokenizer());
+}
 
-    const auto& data = dialogueLoader.getData();
-    const auto& augment = augmentLoader.getData();
+int main(int argc, char** argv)
+{
+    CommandLine commandLine(argc, argv);
 
-    Augmenter augmenter(data, augment);
-
-    const auto& augmentedData = augmenter.getAugmented();
-
-    Tokenizer tokenizer;
-    tokenizer.tokenize(data);
-    tokenizer.tokenize(augment);
+    Config config { 32, 30, 128, 128, 0.002f, false };
+    if(!config.loadFromFile(commandLine.getConfigPath()))
+        std::println("Failed to load config file. Using default values.");
 
     std::srand(std::time(0));
     torch::manual_seed(std::rand());
 
-    auto dataset = TokensDataset(augmentedData, tokenizer, config.maxSize, true)
-        .map(torch::data::transforms::Stack<>());
+    DataManager dataManager(config);
     
-    auto testDataset = TokensDataset(augmentedData, tokenizer, config.maxSize, true)
-        .map(torch::data::transforms::Stack<>());
-
-    auto loader = torch::data::make_data_loader(
-        std::move(dataset),
-        torch::data::DataLoaderOptions()
-            .batch_size(config.batchSize)
-            .workers(12)
-    );
-
-    auto testLoader = torch::data::make_data_loader(
-        std::move(testDataset),
-        torch::data::DataLoaderOptions()
-            .batch_size(1)
-    );
-
-    auto transformer = std::make_shared<Transformer>(tokenizer.size(), config.maxSize, config.maxSeq);
-
+    auto transformer = std::make_shared<Transformer>(dataManager.getTokenizer().size(), config.dModel, config.maxSeq);
     if(config.load)
-        torch::load(transformer, "model.pt");
+        torch::load(transformer, config.modelPath);
 
-    Trainer(std::move(loader), transformer, { config.epochs, config.batchSize, config.learningRate, config.load }).train();
-    Tester(std::move(testLoader), transformer, { 1 }).test(tokenizer);
+    if(commandLine.isTrainingMode())
+        training(dataManager, transformer, config);
+    
+    Inferencer(dataManager.getTokenizer(), transformer, config.dModel).run();
 
-    inference(tokenizer, transformer, config.maxSize);
+    if(!config.saveToFile(commandLine.getConfigPath()))
+        std::println("Failed to save config file.");
 }

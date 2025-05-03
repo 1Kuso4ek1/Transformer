@@ -2,6 +2,7 @@
 #include <memory>
 #include <print>
 
+#include <Config.hpp>
 #include <Utils.hpp>
 
 #include <ATen/core/TensorBody.h>
@@ -15,15 +16,6 @@ template<class Loader, class Network>
 class Trainer
 {
 public:
-    struct Config
-    {
-        int epochs;
-        int batchSize;
-
-        float learningRate;
-        bool loadOptimizer = false;
-    };
-
     Trainer(
         Loader&& loader,
         std::shared_ptr<Network> network,
@@ -38,8 +30,8 @@ public:
             .eps(1e-9)
         )
     {
-        if(config.loadOptimizer)
-            torch::load(optimizer, "optimizer.pt");
+        if(config.load)
+            torch::load(optimizer, config.optimizerPath);
     }
 
     void train()
@@ -82,22 +74,22 @@ public:
 
             if(epoch % 10 == 0)
             {
-                torch::save(network, "model.pt");
-                torch::save(optimizer, "optimizer.pt");
+                torch::save(network, config.modelPath);
+                torch::save(optimizer, config.optimizerPath);
             }
 
             std::println("Epoch: {}\tLoss: {}", epoch + 1, loss.item<float>());
         }
 
-        torch::save(network, "model.pt");
-        torch::save(optimizer, "optimizer.pt");
+        torch::save(network, config.modelPath);
+        torch::save(optimizer, config.optimizerPath);
     }
 
 private:
     Loader loader;
     std::shared_ptr<Network> network;
 
-    Config config;
+    const Config& config;
 
     torch::optim::Adam optimizer;
 };

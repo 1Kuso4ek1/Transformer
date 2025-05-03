@@ -8,7 +8,7 @@ class TokensDataset : public torch::data::Dataset<TokensDataset>
 public:
     TokensDataset(
         const std::vector<std::string>& data,
-        Tokenizer& tokenizer,
+        const Tokenizer& tokenizer,
         size_t maxSize,
         bool roles
     ) : maxSize(maxSize)
@@ -23,7 +23,7 @@ public:
 
     void learnNextToken(
         const std::vector<std::string>& data,
-        Tokenizer& tokenizer
+        const Tokenizer& tokenizer
     )
     {
         for(const auto& i : data)
@@ -43,7 +43,7 @@ public:
 
     void learnByRoles(
         const std::vector<std::string>& data,
-        Tokenizer& tokenizer
+        const Tokenizer& tokenizer
     )
     {
         bool user = true;
@@ -74,7 +74,7 @@ public:
 
     void learnByRolesNextToken(
         const std::vector<std::string>& data,
-        Tokenizer& tokenizer
+        const Tokenizer& tokenizer
     )
     {
         bool user = true;
@@ -121,7 +121,7 @@ public:
 
     void learnByRolesNoTargets(
         const std::vector<std::string>& data,
-        Tokenizer& tokenizer
+        const Tokenizer& tokenizer
     )
     {
         bool user = true;
@@ -150,7 +150,7 @@ public:
         }
     }
 
-    void encodeRawData(Tokenizer& tokenizer)
+    void encodeRawData(const Tokenizer& tokenizer)
     {
         for(const auto& i : rawData)
         {
