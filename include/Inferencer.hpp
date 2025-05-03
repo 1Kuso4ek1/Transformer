@@ -22,7 +22,7 @@ public:
             std::getline(std::cin, userInput);
             
             auto lastCommand = handleCommands();
-            
+
             if(lastCommand == "exit")
                 break;
             else if(!lastCommand.empty())
@@ -44,22 +44,22 @@ private:
 
     std::string handleCommands()
     {
-        if(this->userInput == "exit")
+        if(userInput == "exit")
             return "exit";
 
-        if(this->userInput == "reset")
+        if(userInput == "reset")
         {
-            this->context.clear();
+            context.clear();
             std::println("Context cleared.\n");
 
             return "reset";
         }
         
-        auto pos = this->userInput.find("temperature");
+        auto pos = userInput.find("temperature");
         if(pos != std::string::npos)
         {
-            this->temperature = std::stof(this->userInput.substr(pos + 12));
-            std::println("Temperature set to {}.\n", this->temperature);
+            temperature = std::stof(userInput.substr(pos + 12));
+            std::println("Temperature set to {}.\n", temperature);
 
             return "temperature";
         }
@@ -69,30 +69,30 @@ private:
 
     void processInput()
     {
-        if(this->userInput != "pass")
+        if(userInput != "pass")
         {
-            this->context += " [USER] " + this->userInput;
-            this->context += " [ASSISTANT] ";
+            context += " [USER] " + userInput;
+            context += " [ASSISTANT] ";
         }
     }
 
     void generateResponse()
     {
-        auto tokens = this->tokenizer.encode(this->context);
+        auto tokens = tokenizer.encode(context);
         
-        if(tokens.size() > this->maxSize)
-            tokens.erase(tokens.begin(), tokens.begin() + tokens.size() - this->maxSize);
+        if(tokens.size() > maxSize)
+            tokens.erase(tokens.begin(), tokens.begin() + tokens.size() - maxSize);
 
-        auto output = this->transformer->generate(std::move(tokens), this->maxSize, 128, this->temperature);
+        auto output = transformer->generate(std::move(tokens), maxSize, 128, temperature);
         
         std::print("\nPredicted: ");
         for(const auto& i : output)
         {
             if(i != 0 && i != 2)
             {
-                auto token = this->tokenizer.decode(i);
+                auto token = tokenizer.decode(i);
                 std::print("{} ", token);
-                this->context += token + ' ';
+                context += token + ' ';
             }
         }
 
