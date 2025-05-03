@@ -82,16 +82,16 @@ private:
         
         if(tokens.size() > maxSize)
             tokens.erase(tokens.begin(), tokens.begin() + tokens.size() - maxSize);
-
-        auto output = transformer->generate(std::move(tokens), maxSize, 128, temperature);
         
         std::print("\nPredicted: ");
-        for(const auto& i : output)
+        for(const auto& i : transformer->generate(std::move(tokens), maxSize, 128, temperature))
         {
             if(i != 0 && i != 2)
             {
                 auto token = tokenizer.decode(i);
                 std::print("{} ", token);
+                std::cout.flush();
+                
                 context += token + ' ';
             }
         }

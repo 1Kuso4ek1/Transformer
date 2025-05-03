@@ -8,6 +8,8 @@
 #include <torch/nn/modules/linear.h>
 #include <torch/nn/functional/activation.h>
 
+#include <generator>
+
 #include <Utils.hpp>
 
 class Transformer : public torch::nn::Module
@@ -49,11 +51,8 @@ public:
         torch::nn::init::xavier_uniform_(linear->weight);
     }
 
-    std::vector<int64_t> generate(std::vector<int64_t>&& tokens, size_t maxSize, size_t maxTokens, float temperature = 0.7)
+    std::generator<int64_t> generate(std::vector<int64_t>&& tokens, size_t maxSize, size_t maxTokens, float temperature = 0.7)
     {
-        std::vector<int64_t> output;
-        output.reserve(maxTokens);
-
         eval();
         to(global::device);
 
@@ -70,10 +69,8 @@ public:
 
             auto last = res[0][res.size(1) - 1];
 
-            for(auto& i : { 0, 1, 3, 4 })
+            for(auto& i : { 0, 1, 3, 4 }) // Forbidden tokens
                 last[i] = -1e9;
-            
-            //auto token = last.argmax().item<int64_t>();
 
             auto probs = torch::softmax(last / temperature, -1);
             auto token = torch::multinomial(probs, 1).item<int64_t>();
@@ -82,13 +79,12 @@ public:
                 break;
 
             tokens.push_back(token); // Used like a context
-            output.push_back(token);
 
             if(tokens.size() > maxSize)
                 tokens.erase(tokens.begin());
-        }
 
-        return output;
+            co_yield token;
+        }
     }
 
     torch::Tensor forward(torch::Tensor src)
