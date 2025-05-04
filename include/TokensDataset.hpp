@@ -14,17 +14,14 @@ public:
     ) : maxSize(maxSize)
     {
         if(roles)
-            learnByRolesNoTargets(data, tokenizer);
+            learnByRolesNoTargets(data);
         else
-            learnNextToken(data, tokenizer);
+            learnNextToken(data);
 
         encodeRawData(tokenizer);
     }
 
-    void learnNextToken(
-        const std::vector<std::string>& data,
-        const Tokenizer& tokenizer
-    )
+    void learnNextToken(const std::vector<std::string>& data)
     {
         for(const auto& i : data)
         {
@@ -41,10 +38,7 @@ public:
         }
     }
 
-    void learnByRoles(
-        const std::vector<std::string>& data,
-        const Tokenizer& tokenizer
-    )
+    void learnByRoles(const std::vector<std::string>& data)
     {
         bool user = true;
 
@@ -72,10 +66,7 @@ public:
         }
     }
 
-    void learnByRolesNextToken(
-        const std::vector<std::string>& data,
-        const Tokenizer& tokenizer
-    )
+    void learnByRolesNextToken(const std::vector<std::string>& data)
     {
         bool user = true;
 
@@ -119,10 +110,7 @@ public:
         }
     }
 
-    void learnByRolesNoTargets(
-        const std::vector<std::string>& data,
-        const Tokenizer& tokenizer
-    )
+    void learnByRolesNoTargets(const std::vector<std::string>& data)
     {
         bool user = true;
 
