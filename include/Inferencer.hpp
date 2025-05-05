@@ -67,7 +67,7 @@ private:
         }
         
         pos = userInput.find("k");
-        if(pos != std::string::npos)
+        if(pos == 0)
         {
             k = std::stoi(userInput.substr(pos + 2));
             std::println("Top-k set to {}.\n", k);

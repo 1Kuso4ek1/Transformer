@@ -1,0 +1,12 @@
+{
+    "augmentPath": "",
+    "dModel": 128,
+    "dataPath": "../data/daily_dialogues.txt",
+    "epochs": 0,
+    "learningRate": 0.0020000000949949026,
+    "load": true,
+    "maxSeq": 128,
+    "modelPath": "../pretrained/model_daily.pt",
+    "optimizerPath": "../pretrained/optimizer_daily.pt",
+    "trainBatch": 32
+}

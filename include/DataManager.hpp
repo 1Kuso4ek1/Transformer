@@ -55,8 +55,13 @@ private:
         const auto& data = dialogueLoader.getData();
         const auto& augment = augmentLoader.getData();
 
-        Augmenter augmenter(data, augment);
-        augmentedData = augmenter.getAugmented();
+        if(!augment.empty())
+        {
+            Augmenter augmenter(data, augment);
+            augmentedData = augmenter.getAugmented();
+        }
+        else
+            augmentedData = data;
 
         tokenizer.tokenize(data);
         tokenizer.tokenize(augment);
