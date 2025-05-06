@@ -1,6 +1,8 @@
 #pragma once
 #include <c10/core/Device.h>
 
+#include <ranges>
+
 namespace global
 {
 
@@ -26,4 +28,22 @@ inline std::string separatePunctuation(const std::string& str)
     }
 
     return modified;
+}
+
+inline std::string toLower(std::string&& str)
+{
+    bool skip = false;
+
+    const auto view =
+        std::views::transform(str, [&skip](const auto& c) -> char
+        {
+            if(c == '[') skip = true;
+            else if(c == ']') skip = false;
+
+            if(skip) return c;
+            
+            return std::tolower(c);
+        });
+
+    return { view.begin(), view.end() };
 }

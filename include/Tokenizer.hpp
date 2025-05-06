@@ -14,11 +14,12 @@ public:
     {
         for(const auto& text : data)
         {
-            const auto modified = separatePunctuation(text);
+            auto modified = separatePunctuation(text);
+            modified = toLower(std::move(modified));
 
             for(const auto& token : std::views::split(modified, ' '))
             {
-                auto str = std::string(std::string_view(token));
+                auto str = std::string(token.begin(), token.end());
                 
                 tokens.insert(str);
             }
@@ -33,7 +34,8 @@ public:
     {
         std::vector<int64_t> encoded;
 
-        const auto modified = separatePunctuation(std::string(text));
+        auto modified = separatePunctuation(std::string(text));
+        modified = toLower(std::move(modified));
         
         for(const auto& token : std::views::split(modified, ' '))
         {

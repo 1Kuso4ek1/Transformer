@@ -126,6 +126,7 @@ public:
             }
 
             auto modified = separatePunctuation(i);
+            modified = toLower(std::move(modified));
 
             if(user)
                 rawData.push_back(context + " [USER] " + modified + " [ASSISTANT] ");
